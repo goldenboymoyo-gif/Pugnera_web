@@ -1,35 +1,3 @@
-const SOCIALS = [
-  {
-    name: 'X',
-    href: 'https://x.com',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M18.9 1.5h3.7l-8.1 9.3L24 22.5h-7.5l-5.9-7.7-6.7 7.7H.2l8.7-9.9L0 1.5h7.7l5.3 7 6-7zM17.6 20.4h2.1L6.4 3.5H4.2l13.4 16.9z" />
-      </svg>
-    ),
-  },
-  {
-    name: 'YouTube',
-    href: 'https://youtube.com',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.3 31.3 0 0 0 0 12a31.3 31.3 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.3 31.3 0 0 0 24 12a31.3 31.3 0 0 0-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z" />
-      </svg>
-    ),
-  },
-  {
-    name: 'Instagram',
-    href: 'https://instagram.com',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
-        <circle cx="12" cy="12" r="4.2" />
-        <circle cx="17.6" cy="6.4" r="1.2" fill="currentColor" stroke="none" />
-      </svg>
-    ),
-  },
-];
-
 const EXPLORE = [
   { label: 'Fighters', href: '/fighters' },
   { label: 'Upcoming Fights', href: '/upcoming' },
@@ -59,20 +27,6 @@ export default function Footer() {
             <p className="footer__tagline">
               The home of African boxing. Fighter profiles, events, rankings and news — all in one place.
             </p>
-            <div className="footer__socials">
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.name}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="footer__social"
-                  aria-label={s.name}
-                >
-                  {s.icon}
-                </a>
-              ))}
-            </div>
           </div>
 
           <div className="footer__col">
