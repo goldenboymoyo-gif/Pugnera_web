@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BackButton from '../components/BackButton';
@@ -42,7 +41,6 @@ const COUNTRIES = [
 ];
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [role, setRole] = useState('');
   const [form, setForm] = useState({
     firstName: '',
@@ -72,6 +70,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
+    if (!role) {
+      setError('Please choose whether you are registering as a Fan or a Boxer.');
+      return;
+    }
     if (!form.firstName || !form.lastName || !form.email || !form.password) {
       setError('Please fill in all required fields.');
       return;
@@ -139,12 +141,12 @@ export default function RegisterPage() {
           </div>
           <div className="register-success">
             <div className="register-success__icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                 <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
             </div>
-            <h1>Welcome to Pugnera!</h1>
+            <h1>Welcome to Pugnera</h1>
             <p>
               Your {role === 'boxer' ? 'boxer' : 'fan'} account has been created successfully.
               {role === 'boxer' && ' Your profile will now appear on the Fighters page.'}
@@ -171,221 +173,205 @@ export default function RegisterPage() {
         <div className="container page-top">
           <BackButton />
         </div>
-        <div className="page-hero page-hero--red">
-          <h1>Create Your Account</h1>
-          <p>Join the Pugnera community. Choose your role to get started.</p>
+        <div className="page-hero">
+          <h1>Create Account</h1>
+          <p>Register as a fan or a professional boxer. Boxer profiles appear on the Fighters page.</p>
         </div>
-
-        {!role && (
-          <div className="container">
-            <div className="role-select">
-              <button
-                type="button"
-                className="role-card"
-                onClick={() => setRole('fan')}
-              >
-                <div className="role-card__icon">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <h2>Fan</h2>
-                <p>Follow fighters, discover events and stay connected with African boxing.</p>
-              </button>
-              <button
-                type="button"
-                className="role-card"
-                onClick={() => setRole('boxer')}
-              >
-                <div className="role-card__icon">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M18 8a6 6 0 0 1-6 6M6 8a6 6 0 0 0 6 6" />
-                    <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
-                    <circle cx="12" cy="12" r="6" />
-                  </svg>
-                </div>
-                <h2>Boxer</h2>
-                <p>Create your professional profile and get discovered across Africa and beyond.</p>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {role && (
-          <div className="container">
-            <div className="register-form-wrap">
-              <button type="button" className="register-back" onClick={() => setRole('')}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M19 12H5m7-7l-7 7 7 7" />
-                </svg>
-                Back to role selection
-              </button>
-              <h2 className="register-form-wrap__title">
-                {role === 'fan' ? 'Fan Registration' : 'Boxer Registration'}
-              </h2>
-              {error && <div className="register-error">{error}</div>}
-              <form className="register-form" onSubmit={handleSubmit}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="firstName">First Name *</label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      value={form.firstName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="lastName">Last Name *</label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      value={form.lastName}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">Email *</label>
+        <div className="container register-page">
+          {error && <div className="register-error">{error}</div>}
+          <form className="register-form" onSubmit={handleSubmit}>
+            <fieldset className="role-fieldset">
+              <legend>I am a</legend>
+              <div className="role-options">
+                <label className={`role-option ${role === 'fan' ? 'active' : ''}`}>
                   <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={form.email}
+                    type="radio"
+                    name="role"
+                    value="fan"
+                    checked={role === 'fan'}
+                    onChange={() => setRole('fan')}
+                  />
+                  <span className="role-option__name">Fan</span>
+                  <span className="role-option__desc">
+                    Follow fighters, discover events and stay connected with African boxing.
+                  </span>
+                </label>
+                <label className={`role-option ${role === 'boxer' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="boxer"
+                    checked={role === 'boxer'}
+                    onChange={() => setRole('boxer')}
+                  />
+                  <span className="role-option__name">Boxer</span>
+                  <span className="role-option__desc">
+                    Create your professional profile and get discovered across Africa and beyond.
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <section className="form-section">
+              <h3 className="form-section__title">Basic Information</h3>
+              <div className="form-row">
+                <div className="form-field">
+                  <label htmlFor="firstName">First Name *</label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    value={form.firstName}
                     onChange={handleChange}
                     required
                   />
                 </div>
+                <div className="form-field">
+                  <label htmlFor="lastName">Last Name *</label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form-field">
+                <label htmlFor="email">Email *</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-field">
+                  <label htmlFor="password">Password *</label>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <div className="form-field">
+                  <label htmlFor="confirmPassword">Confirm Password *</label>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form-field">
+                <label htmlFor="country">Country</label>
+                <select id="country" name="country" value={form.country} onChange={handleChange}>
+                  <option value="">Select country</option>
+                  {COUNTRIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+
+            {role === 'boxer' && (
+              <section className="form-section">
+                <h3 className="form-section__title">Boxing Information</h3>
                 <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="password">Password *</label>
+                  <div className="form-field">
+                    <label htmlFor="weight">Weight Class *</label>
+                    <select id="weight" name="weight" value={form.weight} onChange={handleChange} required>
+                      <option value="">Select weight class</option>
+                      {WEIGHT_CLASSES.map((w) => (
+                        <option key={w} value={w}>
+                          {w}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="stance">Stance</label>
+                    <select id="stance" name="stance" value={form.stance} onChange={handleChange}>
+                      <option value="Orthodox">Orthodox</option>
+                      <option value="Southpaw">Southpaw</option>
+                      <option value="Switch">Switch</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-field">
+                  <label htmlFor="nickname">Ring Name / Nickname</label>
+                  <input
+                    id="nickname"
+                    name="nickname"
+                    type="text"
+                    placeholder="e.g. The Beast"
+                    value={form.nickname}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-field">
+                    <label htmlFor="height">Height</label>
                     <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      value={form.password}
+                      id="height"
+                      name="height"
+                      type="text"
+                      placeholder="e.g. 6'2&quot;"
+                      value={form.height}
                       onChange={handleChange}
-                      required
-                      minLength={6}
                     />
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="confirmPassword">Confirm Password *</label>
+                  <div className="form-field">
+                    <label htmlFor="reach">Reach</label>
                     <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      value={form.confirmPassword}
+                      id="reach"
+                      name="reach"
+                      type="text"
+                      placeholder="e.g. 76&quot;"
+                      value={form.reach}
                       onChange={handleChange}
-                      required
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="country">Country</label>
-                  <select id="country" name="country" value={form.country} onChange={handleChange}>
-                    <option value="">Select country</option>
-                    {COUNTRIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
+                <div className="form-row form-row--four">
+                  <div className="form-field">
+                    <label htmlFor="wins">Wins</label>
+                    <input id="wins" name="wins" type="number" min="0" value={form.wins} onChange={handleChange} />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="losses">Losses</label>
+                    <input id="losses" name="losses" type="number" min="0" value={form.losses} onChange={handleChange} />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="draws">Draws</label>
+                    <input id="draws" name="draws" type="number" min="0" value={form.draws} onChange={handleChange} />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="kos">KOs</label>
+                    <input id="kos" name="kos" type="number" min="0" value={form.kos} onChange={handleChange} />
+                  </div>
                 </div>
+              </section>
+            )}
 
-                {role === 'boxer' && (
-                  <>
-                    <h3 className="form-section-title">Boxing Information</h3>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label htmlFor="weight">Weight Class *</label>
-                        <select id="weight" name="weight" value={form.weight} onChange={handleChange} required>
-                          <option value="">Select weight class</option>
-                          {WEIGHT_CLASSES.map((w) => (
-                            <option key={w} value={w}>
-                              {w}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="stance">Stance</label>
-                        <select id="stance" name="stance" value={form.stance} onChange={handleChange}>
-                          <option value="Orthodox">Orthodox</option>
-                          <option value="Southpaw">Southpaw</option>
-                          <option value="Switch">Switch</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="nickname">Nickname</label>
-                      <input
-                        id="nickname"
-                        name="nickname"
-                        type="text"
-                        placeholder="e.g. The Beast"
-                        value={form.nickname}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="form-row form-row--three">
-                      <div className="form-group">
-                        <label htmlFor="height">Height</label>
-                        <input
-                          id="height"
-                          name="height"
-                          type="text"
-                          placeholder="e.g. 6'2&quot;"
-                          value={form.height}
-                          onChange={handleChange}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="reach">Reach</label>
-                        <input
-                          id="reach"
-                          name="reach"
-                          type="text"
-                          placeholder="e.g. 76&quot;"
-                          value={form.reach}
-                          onChange={handleChange}
-                        />
-                      </div>
-                    </div>
-                    <h3 className="form-section-title">Record</h3>
-                    <div className="form-row form-row--four">
-                      <div className="form-group">
-                        <label htmlFor="wins">Wins</label>
-                        <input id="wins" name="wins" type="number" min="0" value={form.wins} onChange={handleChange} />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="losses">Losses</label>
-                        <input id="losses" name="losses" type="number" min="0" value={form.losses} onChange={handleChange} />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="draws">Draws</label>
-                        <input id="draws" name="draws" type="number" min="0" value={form.draws} onChange={handleChange} />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="kos">KOs</label>
-                        <input id="kos" name="kos" type="number" min="0" value={form.kos} onChange={handleChange} />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <button type="submit" className="btn btn--primary register-submit">
-                  Create Account
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+            <button type="submit" className="btn btn--primary register-submit">
+              Create Account
+            </button>
+          </form>
+        </div>
       </main>
       <Footer />
     </>
