@@ -2,292 +2,192 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BackButton from '../components/BackButton';
 
+const FighterIcon = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+    <circle cx="12" cy="7.5" r="3.5" />
+    <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+  </svg>
+);
+
+const FanIcon = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+  </svg>
+);
+
+const EventIcon = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+    <rect x="3" y="4.5" width="18" height="17" rx="2" />
+    <path d="M3 9h18M8 2.5v4M16 2.5v4" />
+    <path d="M8.5 13.5 11 16l4.5-4.5" />
+  </svg>
+);
+
 export default function AboutPage() {
   return (
     <>
       <Header />
       <main>
-        <div className="container page-top">
-          <BackButton />
-        </div>
-        <div className="page-hero">
-          <h1>About <span style={{ color: 'var(--red)' }}>Pugnera</span></h1>
-          <p>A technology-driven platform built to help modernise and strengthen professional boxing in Africa.</p>
-        </div>
+        <section className="about-hero">
+          <div className="about-hero__bg"></div>
+          <div className="about-hero__content container">
+            <span className="about-hero__label">About Pugnera</span>
+            <h1>
+              Boxing has the talent.
+              <br />
+              We&apos;re building the connection.
+            </h1>
+            <p>
+              Pugnera is a platform built around professional boxing, helping fighters, fans and the people
+              behind the sport connect in one place.
+            </p>
+          </div>
+        </section>
 
         <div className="about-content">
           <section className="about-section">
-            <h2>Our Story</h2>
+            <h2>Why Pugnera?</h2>
+            <p className="about-lead">We kept seeing the same problem.</p>
             <p>
-              We believe African boxing has incredible talent, passionate fans and a growing community, but too many boxers, events and opportunities remain difficult to discover. Information is often scattered, athletes struggle to build consistent digital visibility, and fans can find it difficult to follow fighters, discover upcoming fights and stay connected with the sport.
+              There are talented boxers across Africa, but finding information about them isn&apos;t always
+              easy. A fighter can have years of experience, important wins and a growing following, yet still
+              be difficult to discover online.
             </p>
             <p>
-              Pugnera exists to help change that. We are building a digital ecosystem where professional boxers, fans, events, promoters, sponsors and other stakeholders can connect through one accessible platform.
+              Fight information can be scattered across different pages and social media accounts. Fans may
+              hear about a fight after it has already happened. And fighters don&apos;t always have a proper
+              place to build their professional profile.
             </p>
+            <p>We believe that can be better.</p>
             <div className="about-quote">
-              <h2>Our goal is simple</h2>
-              <p>Make African professional boxing easier to discover, follow, support and grow.</p>
+              <p>That&apos;s where Pugnera comes in.</p>
             </div>
           </section>
 
           <section className="about-section">
-            <h2>What We Do</h2>
+            <h2>One place for professional boxing</h2>
             <p>
-              Pugnera develops digital solutions designed specifically for the professional boxing ecosystem. Our platform is being built to bring important parts of the boxing experience together, including:
+              Pugnera is being built to make it easier to discover fighters, follow their careers and keep up
+              with upcoming fights and events.
             </p>
-            <ul className="about-list">
-              <li>Professional boxer profiles</li>
-              <li>Fighter records and career information</li>
-              <li>Upcoming and past fights</li>
-              <li>Boxing events</li>
-              <li>Fight information and results</li>
-              <li>Fan engagement</li>
-              <li>Ratings and community interaction</li>
-              <li>Digital visibility for boxers</li>
-              <li>Event and fight discovery</li>
-              <li>Opportunities for partnerships and sponsorship</li>
-              <li>Boxing-related news and content</li>
-              <li>Digital tools for people working within the boxing ecosystem</li>
-            </ul>
             <p>
-              We want a boxer in Zimbabwe, Zambia, Ghana, Nigeria, South Africa or anywhere else in Africa to have a digital presence that can be discovered beyond their local gym or city. At the same time, we want fans to have a central place where they can discover the fighters and events they care about.
+              Fans can find fighters they care about. Boxers can build their profiles and share their journey.
+              As the platform grows, we want to create more ways for the boxing community to connect with
+              opportunities, events and each other.
             </p>
-          </section>
 
-          <section className="about-section">
-            <h2>Our Purpose</h2>
-            <p>
-              Our purpose is to use technology to close the digital gap surrounding African professional boxing. Africa has produced talented fighters throughout boxing history, yet talent alone is not always enough. Fighters also need visibility, professional presentation, opportunities, audiences and connections.
-            </p>
-            <p>We want to make it easier for:</p>
-            <ul className="about-list">
-              <li><strong>Boxers</strong> to build their professional identity and gain visibility.</li>
-              <li><strong>Fans</strong> to discover fighters, follow careers and engage with boxing.</li>
-              <li><strong>Event organisers</strong> to present their events professionally and reach wider audiences.</li>
-              <li><strong>Sponsors and partners</strong> to discover athletes, events and opportunities within African boxing.</li>
-              <li><strong>The wider boxing community</strong> to access reliable, organised and useful information.</li>
-            </ul>
-          </section>
-
-          <section className="about-section">
-            <h2>Our Mission</h2>
-            <div className="about-quote">
-              <p>
-                To build a trusted digital ecosystem that connects African professional boxing with the people, audiences and opportunities it needs to grow.
-              </p>
-            </div>
-            <p>
-              We are committed to using technology to improve visibility, accessibility and engagement within the sport while creating opportunities for African boxers to build stronger professional careers. We want Pugnera to become more than a website — part of the digital infrastructure supporting the future of African professional boxing.
-            </p>
-          </section>
-
-          <section className="about-section">
-            <h2>Our Vision</h2>
-            <div className="about-quote">
-              <p>
-                To become Africa&apos;s leading digital platform for professional boxing, connecting fighters, fans, events and opportunities across the continent and eventually with the global boxing community.
-              </p>
-            </div>
-            <p>
-              We envision a future where an African boxer does not have to depend solely on word of mouth or local recognition to be discovered. Their career, achievements, fights and professional identity should be accessible to the world.
-            </p>
-          </section>
-
-          <section className="about-section">
-            <h2>What We Want to Achieve</h2>
-            <div className="about-goals">
-              <div className="about-goal">
-                <span className="about-goal__num">01</span>
-                <h3>Increase Boxer Visibility</h3>
-                <p>Give professional boxers a stronger digital presence where fans, promoters, sponsors and other industry stakeholders can discover them.</p>
+            <div className="about-features">
+              <div className="about-feature">
+                <span className="about-feature__icon">{FighterIcon}</span>
+                <h3>Fighters</h3>
+                <p>A place to build a professional profile and be easier to discover.</p>
               </div>
-              <div className="about-goal">
-                <span className="about-goal__num">02</span>
-                <h3>Connect African Boxing</h3>
-                <p>Bring boxing communities across different African countries together rather than keeping them isolated within individual cities or national markets.</p>
+              <div className="about-feature">
+                <span className="about-feature__icon">{FanIcon}</span>
+                <h3>Fans</h3>
+                <p>A simple way to follow fighters and keep up with the sport.</p>
               </div>
-              <div className="about-goal">
-                <span className="about-goal__num">03</span>
-                <h3>Improve Access to Information</h3>
-                <p>Make fight schedules, boxer profiles, results, events and other important information easier to find and understand.</p>
-              </div>
-              <div className="about-goal">
-                <span className="about-goal__num">04</span>
-                <h3>Strengthen Fan Engagement</h3>
-                <p>Give boxing fans a better way to follow fighters, discover events and participate in the sport beyond simply watching fights.</p>
-              </div>
-              <div className="about-goal">
-                <span className="about-goal__num">05</span>
-                <h3>Create Commercial Opportunities</h3>
-                <p>Help create better connections between boxers, events, sponsors, brands and potential partners.</p>
-              </div>
-              <div className="about-goal">
-                <span className="about-goal__num">06</span>
-                <h3>Build Digital Infrastructure</h3>
-                <p>Develop technology that can support the professionalisation and continued growth of African boxing.</p>
-              </div>
-              <div className="about-goal">
-                <span className="about-goal__num">07</span>
-                <h3>Take Boxing to a Global Audience</h3>
-                <p>African fighters should not only be known within their hometowns or countries — Pugnera helps make African professional boxing visible to audiences around the world.</p>
+              <div className="about-feature">
+                <span className="about-feature__icon">{EventIcon}</span>
+                <h3>Events</h3>
+                <p>Discover fights and stay informed about what&apos;s happening.</p>
               </div>
             </div>
           </section>
 
           <section className="about-section">
-            <h2>Our Values</h2>
-            <div className="about-values">
-              <div className="about-value">
-                <h3>Accessibility</h3>
-                <p>Technology should make boxing easier to discover, not more complicated.</p>
-              </div>
-              <div className="about-value">
-                <h3>Trust</h3>
-                <p>Information about fighters, events and the sport should be handled responsibly and presented transparently.</p>
-              </div>
-              <div className="about-value">
-                <h3>Innovation</h3>
-                <p>We continuously look for better ways to use technology to solve real problems within boxing.</p>
-              </div>
-              <div className="about-value">
-                <h3>Opportunity</h3>
-                <p>Talent deserves an opportunity to be seen, supported and developed.</p>
-              </div>
-              <div className="about-value">
-                <h3>Community</h3>
-                <p>Boxing is more than the person inside the ring — it includes fans, coaches, promoters, organisers, sponsors and communities.</p>
-              </div>
-              <div className="about-value">
-                <h3>African Excellence</h3>
-                <p>African boxing deserves technology and digital platforms built with the same ambition as the talent found across the continent.</p>
-              </div>
+            <h2>What we want to achieve</h2>
+            <p className="about-lead">We&apos;re starting with boxing. The bigger goal is connection.</p>
+            <p>
+              We want to help make African professional boxing easier to discover and easier to follow.
+            </p>
+            <p>
+              We want a fighter&apos;s location to matter less when it comes to being seen. Whether they&apos;re
+              fighting in Harare, Lagos, Johannesburg, Accra or elsewhere on the continent, their career
+              should have a place online where people can find it.
+            </p>
+            <p>
+              We know Pugnera won&apos;t solve every problem in boxing. But we believe better digital tools can
+              make a real difference.
+            </p>
+          </section>
+
+          <section className="about-mission">
+            <span className="about-hero__label">Our Mission</span>
+            <h2>To make professional boxing easier to discover, follow and connect across Africa.</h2>
+            <div className="about-mission__words">
+              <span>Visibility</span>
+              <span>Connection</span>
+              <span>Opportunity</span>
             </div>
           </section>
 
           <section className="about-section">
-            <h2>Our Founders</h2>
+            <h2>Where we want to go</h2>
+            <p>
+              We want to see a future where African boxers can build careers that are visible beyond their
+              hometowns and countries.
+            </p>
+            <p>A future where fans can easily find the fighters and fights they care about.</p>
+            <p>
+              And a future where the people investing in African boxing can find the talent and opportunities
+              that already exist here.
+            </p>
+          </section>
+
+          <section className="about-section">
+            <h2>Built by Bright Moyo &amp; Mildred Ngoma</h2>
             <div className="about-founders">
               <div className="about-founder">
+                <div className="about-founder__monogram" aria-hidden="true">BM</div>
                 <h3>Bright Moyo</h3>
                 <span className="about-founder__role">Co-Founder</span>
                 <p>
-                  Bright Moyo is a technology-focused entrepreneur and full-stack developer with an interest in building digital products that solve real-world problems. At Pugnera, Bright focuses on technology, product development and turning the company&apos;s vision into practical digital solutions — using software and innovation to create opportunities that extend beyond traditional geographical boundaries.
+                  Bright is a full-stack developer and one of the people behind the technology powering
+                  Pugnera. He is focused on building the platform and turning the idea into something people
+                  can actually use.
                 </p>
               </div>
               <div className="about-founder">
+                <div className="about-founder__monogram" aria-hidden="true">MN</div>
                 <h3>Mildred Ngoma</h3>
                 <span className="about-founder__role">Co-Founder</span>
                 <p>
-                  Mildred Ngoma is a co-founder of Pugnera and contributes to the company&apos;s direction, development and growth. Together with Bright Moyo, she shares the vision of building a platform that can contribute to the digital transformation and growth of African professional boxing.
+                  Mildred is a co-founder of Pugnera, working alongside Bright on the direction and growth of
+                  the platform.
                 </p>
               </div>
             </div>
           </section>
 
-          <section className="about-section" id="privacy">
-            <h2>Privacy &amp; Data Protection</h2>
+          <section className="about-section about-section--privacy">
+            <h2>Your information matters</h2>
             <p>
-              Pugnera understands that trust is fundamental to building a digital platform. We are committed to protecting the personal information entrusted to us and handling user data responsibly. Depending on the features a user interacts with, we may collect information such as account details, contact information, profile information, platform activity and other information necessary to provide our services.
-            </p>
-            <ul className="about-list">
-              <li>Collect only information that is reasonably necessary for our services.</li>
-              <li>Explain how information is collected and used.</li>
-              <li>Protect user information from unauthorised access.</li>
-              <li>Avoid selling personal information to third parties.</li>
-              <li>Use appropriate security measures to protect our systems.</li>
-              <li>Give users appropriate control over their information.</li>
-              <li>Retain information only for as long as reasonably necessary or legally required.</li>
-              <li>Respect applicable privacy and data-protection requirements.</li>
-            </ul>
-          </section>
-
-          <section className="about-section">
-            <h2>Security</h2>
-            <p>
-              Security is an important part of how we build Pugnera. We are committed to implementing reasonable technical and organisational safeguards designed to protect user information and the platform.
-            </p>
-            <ul className="about-list">
-              <li>Secure authentication</li>
-              <li>Password protection and secure password handling</li>
-              <li>Encrypted communication</li>
-              <li>Access controls</li>
-              <li>Secure database practices</li>
-              <li>Monitoring for suspicious activity</li>
-              <li>Regular software updates</li>
-              <li>Protection against common web vulnerabilities</li>
-              <li>Controlled access to sensitive information</li>
-              <li>Secure handling of user sessions</li>
-            </ul>
-            <p>
-              However, no internet service can guarantee absolute security. As Pugnera grows, we will continue improving our security practices and infrastructure to respond to new threats and protect our users.
-            </p>
-          </section>
-
-          <section className="about-section">
-            <h2>User Safety &amp; Responsible Use</h2>
-            <p>
-              Pugnera is intended to provide a professional environment for the boxing community. Users are expected to use the platform responsibly and respectfully. We do not tolerate:
-            </p>
-            <ul className="about-list">
-              <li>Harassment</li>
-              <li>Fraudulent activity</li>
-              <li>Impersonation</li>
-              <li>Deliberate misinformation</li>
-              <li>Abuse of other users</li>
-              <li>Unauthorised access to accounts or systems</li>
-              <li>Attempts to manipulate platform functionality</li>
-              <li>Content that violates applicable laws</li>
-            </ul>
-            <p>
-              We reserve the right to investigate violations of our platform rules and take appropriate action where necessary.
-            </p>
-          </section>
-
-          <section className="about-section">
-            <h2>Our Commitment to Boxers</h2>
-            <p>
-              Pugnera is being built with the boxer at the centre. Professional fighters should have more than a name on a fight poster — they should have a professional digital identity that can grow alongside their career. A boxer should be able to build recognition, connect with fans, showcase achievements and become easier for potential partners and audiences to discover.
+              Pugnera collects information needed to provide and improve the platform. We don&apos;t believe
+              users should have to give us information that we don&apos;t need.
             </p>
             <p>
-              Our ambition is to help turn digital visibility into real opportunities.
+              We take reasonable steps to protect accounts and personal information and will continue
+              improving our security as Pugnera grows.
             </p>
-          </section>
-
-          <section className="about-section">
-            <h2>Our Commitment to Fans</h2>
-            <p>
-              Fans are an essential part of boxing. Pugnera aims to make it easier for fans to discover fighters, follow their journeys, find upcoming events and remain connected to the sport. We want fans to feel that African boxing is not happening somewhere far away — it should be accessible from their phone, computer or wherever they are in the world.
-            </p>
-          </section>
-
-          <section className="about-section">
-            <h2>Building for Africa</h2>
-            <p>
-              Pugnera is being built with Africa at its core. The African boxing ecosystem is diverse — different countries have different sporting structures, audiences, resources and digital environments. Rather than simply copying platforms built for other markets, we want to understand the realities of African boxing and build solutions that work within them.
-            </p>
-            <p>
-              Our journey begins with Africa, but our ambition is global.
-            </p>
-          </section>
-
-          <section className="about-section">
-            <h2>The Future of Pugnera</h2>
-            <p>
-              Pugnera is only the beginning. As the platform grows, we intend to explore additional technologies and services that can support professional boxing, including deeper athlete profiles, event management capabilities, digital media, analytics, partnerships, fan experiences and other tools for the boxing ecosystem.
-            </p>
-            <p>
-              We will continue listening to boxers, fans, promoters, sponsors and other stakeholders as we build. Our objective is not to build technology for the sake of technology.
-            </p>
-            <div className="about-quote">
-              <p>We are building technology to solve real problems.</p>
+            <div className="about-privacy-actions">
+              <a href="/about#privacy" className="btn btn--outline">Privacy Policy</a>
+              <a href="/about#privacy" className="btn btn--outline">Terms of Service</a>
             </div>
           </section>
 
-          <div className="about-tagline">
-            <h2>Pugnera</h2>
-            <p>Built for boxing. Built for Africa. Built for the next generation.</p>
-            <span className="about-tagline__founders">Founders: Bright Moyo &amp; Mildred Ngoma</span>
-          </div>
+          <section className="about-cta">
+            <h2>We&apos;re building Pugnera one step at a time.</h2>
+            <p>
+              There&apos;s a lot we want to build. For now, we&apos;re focused on getting the basics right and
+              creating something useful for the boxing community.
+            </p>
+            <div className="about-cta__actions">
+              <a href="/register" className="btn btn--primary">Create an account</a>
+              <a href="/fighters" className="btn btn--outline">Explore Pugnera</a>
+            </div>
+            <p className="about-cta__brand">Built for boxing. Built for Africa. Built for the next generation.</p>
+          </section>
         </div>
       </main>
       <Footer />
