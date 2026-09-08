@@ -37,7 +37,6 @@ const EXPLORE = [
   { label: 'Watch', href: '/watch' },
   { label: 'News', href: '/news' },
   { label: 'Rankings', href: '/rankings' },
-  { label: 'Tickets', href: '/tickets' },
 ];
 
 const WATCH = [
@@ -58,7 +57,7 @@ export default function Footer() {
               <img src="/boxing/logo/image.png" alt="Pugnera Boxing logo" />
             </a>
             <p className="footer__tagline">
-              The home of boxing. Fight nights, replays, rankings and news — streamed right here.
+              The home of African boxing. Fighter profiles, events, rankings and news — all in one place.
             </p>
             <div className="footer__socials">
               {SOCIALS.map((s) => (
@@ -102,6 +101,12 @@ export default function Footer() {
             <h4 className="footer__heading">Company</h4>
             <ul className="footer__list">
               <li>
+                <a href="/about">About Pugnera</a>
+              </li>
+              <li>
+                <a href="/register">Sign Up</a>
+              </li>
+              <li>
                 <a href="https://pugnera.com" target="_blank" rel="noopener noreferrer">
                   Pugnera Group
                 </a>
@@ -114,9 +119,6 @@ export default function Footer() {
               <li>
                 <a href="/rankings">Rankings</a>
               </li>
-              <li>
-                <a href="/tickets">Tickets</a>
-              </li>
             </ul>
           </div>
         </div>
@@ -126,9 +128,9 @@ export default function Footer() {
         <div className="container footer__bar">
           <p className="footer__trademark">&copy; 2026 Pugnera Boxing. All rights reserved.</p>
           <div className="footer__legal">
-            <span>Terms of Service</span>
-            <span>Privacy Policy</span>
-            <span>Cookie Notice</span>
+            <a href="/about#privacy">Terms of Service</a>
+            <a href="/about#privacy">Privacy Policy</a>
+            <a href="/about#privacy">Cookie Notice</a>
           </div>
         </div>
       </div>

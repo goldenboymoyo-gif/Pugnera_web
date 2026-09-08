@@ -10,7 +10,7 @@ const NAV = [
   { label: 'Watch', href: '/watch' },
   { label: 'News', href: '/news' },
   { label: 'Rankings', href: '/rankings' },
-  { label: 'Tickets', href: '/tickets' },
+  { label: 'About', href: '/about' },
 ];
 
 export default function Header() {
@@ -87,35 +87,37 @@ export default function Header() {
         </div>
 
         <div className="header__right">
-          <a href="/tickets" className="btn-upgrade">Get Tickets</a>
+          <a href="/register" className="btn-upgrade">Sign Up</a>
         </div>
 
-        <button
-          type="button"
-          className={`nav__toggle ${menuOpen ? 'open' : ''}`}
-          aria-label="Toggle menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
+        <div className="header__mobile-right">
+          <form className="header__mobile-search" onSubmit={submitSearch}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search"
+              aria-label="Search"
+            />
+          </form>
+          <button
+            type="button"
+            className={`nav__toggle ${menuOpen ? 'open' : ''}`}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
       </div>
 
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
-        <form className="mobile-search" onSubmit={submitSearch}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search fighters, fights & news"
-            aria-label="Search"
-          />
-        </form>
         <nav className="mobile-nav" aria-label="Mobile main">
           {NAV.map((item) => {
             const active =
@@ -130,8 +132,8 @@ export default function Header() {
               </a>
             );
           })}
+          <a href="/register" className="mobile-nav__link mobile-nav__link--cta">Sign Up</a>
         </nav>
-        <a href="/tickets" className="mobile-cta">Get Tickets</a>
       </div>
     </header>
   );
