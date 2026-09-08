@@ -1,7 +1,7 @@
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BackButton from '../components/BackButton';
-import { getContent, previousEvents } from '../lib/boxing-data';
+import { getContent, previousEvents, fights } from '../lib/boxing-data';
 import { useLiveResults, findLiveResult } from '../components/LiveResults';
 
 const MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
@@ -27,42 +27,65 @@ function shortDate(dateStr) {
 
 export async function getStaticProps() {
   const content = getContent();
-  return { props: { content, previous: previousEvents } };
+  const slugByTitle = Object.fromEntries(fights.map((f) => [f.title, f.slug]));
+  const previous = previousEvents.map((p) => ({ ...p, slug: slugByTitle[p.title] }));
+  return { props: { content, previous } };
 }
 
 export default function ResultsPage({ content, previous }) {
-  const liveResults = useLiveResults();
-  const live = Array.isArray(liveResults) ? liveResults : [];
+  const allResults = useLiveResults();
+  const live = Array.isArray(allResults) ? allResults : [];
 
+  const consumed = new Set();
+  const combined = [];
   for (const p of previous) {
     const hit = findLiveResult(live, p.title);
-    if (hit) hit.__replay = p;
+    if (hit) {
+      consumed.add(hit);
+      combined.push({ rep: p, hit });
+    }
   }
 
   const items = [];
-  for (const r of live) {
-    const rep = r.__replay;
+  for (const { rep, hit } of combined) {
     items.push({
       key: `live-${items.length}`,
-      kind: rep ? 'replay-live' : 'live',
+      kind: 'live',
+      winner: hit.winner,
+      loser: hit.loser,
+      verb: hit.verb,
+      method: hit.method,
+      date: hit.date,
+      ts: bsTimestamp(hit.date),
+      title: rep.title,
+      venue: rep.venue,
+      href: `/fights/${rep.slug}`,
+    });
+  }
+  for (const r of live) {
+    if (consumed.has(r)) continue;
+    items.push({
+      key: `live-${items.length}`,
+      kind: 'live',
       winner: r.winner,
       loser: r.loser,
+      verb: r.verb,
       method: r.method,
       date: r.date,
       ts: bsTimestamp(r.date),
-      title: rep ? rep.title : null,
-      venue: rep ? rep.venue : null,
-      href: rep ? `/fights/${rep.slug}` : null,
+      title: null,
+      venue: null,
+      href: null,
     });
   }
   for (const p of previous) {
-    const hasLive = live.some((r) => r.__replay && r.__replay.slug === p.slug);
-    if (hasLive) continue;
+    if (findLiveResult(live, p.title)) continue;
     items.push({
       key: `replay-${p.slug}`,
       kind: 'replay',
       winner: null,
       loser: null,
+      verb: null,
       method: null,
       date: p.date,
       ts: replayTimestamp(p.date),
@@ -83,7 +106,7 @@ export default function ResultsPage({ content, previous }) {
         </div>
         <div className="page-hero">
           <h1>Results <span style={{ color: 'var(--red)' }}>Centre</span></h1>
-          <p>Every result from the biggest nights — updated automatically via BoxingScene, alongside full replays on demand.</p>
+          <p>Every result from the biggest nights — with official scorecards and full replays on demand.</p>
         </div>
         <div className="container">
           <div className="results-list">
@@ -93,23 +116,28 @@ export default function ResultsPage({ content, previous }) {
               </div>
             )}
             {items.map((it) => {
-              const isLive = it.kind !== 'replay';
+              const isLive = it.kind === 'live';
+              const isDraw = isLive && it.verb && String(it.verb).toLowerCase() !== 'defeats';
               return (
                 <div key={it.key} className={`result-row ${isLive ? 'result-row--live' : ''}`}>
                   <div className="result-row__main">
                     {isLive ? (
                       <>
                         <span className="result-row__names">
-                          <strong>{it.winner}</strong> defeats <strong>{it.loser}</strong>
+                          {isDraw ? (
+                            <><strong>{it.winner}</strong> vs <strong>{it.loser}</strong></>
+                          ) : (
+                            <><strong>{it.winner}</strong> defeats <strong>{it.loser}</strong></>
+                          )}
                         </span>
-                        <span className="result-row__method">{it.method}</span>
-                        {it.title && <span className="result-row__event">{it.title} · {it.venue}</span>}
+                        <span className="result-row__method">{it.method || 'Official Scorecards'}</span>
+                        {it.title ? <span className="result-row__event">{it.title} · {it.venue}</span> : null}
                       </>
                     ) : (
                       <>
                         <span className="result-row__names">{it.title}</span>
                         <span className="result-row__method">Full event replay</span>
-                        {it.venue && <span className="result-row__event">{it.venue}</span>}
+                        {it.venue ? <span className="result-row__event">{it.venue}</span> : null}
                       </>
                     )}
                   </div>
@@ -118,7 +146,7 @@ export default function ResultsPage({ content, previous }) {
                     <span className={`source-badge ${isLive ? 'source-badge--live' : ''}`}>
                       {isLive ? 'BoxingScene' : 'Pugnera'}
                     </span>
-                    {it.href && <a className="btn-result" href={it.href}>Watch &rsaquo;</a>}
+                    {it.href ? <a className="btn-result" href={it.href}>Watch &rsaquo;</a> : null}
                   </div>
                 </div>
               );

@@ -1,5 +1,7 @@
 # dependencies
 /node_modules
+/.pnp
+.pnp.js
 
 # next.js
 /.next/
@@ -11,14 +13,21 @@
 # misc
 .DS_Store
 *.pem
-*.log
 
 # debug
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# env
-.env*.local
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# typescript
+# vercel
+.vercel
+
+# typescript (kept .tsbuildinfo clean)
 *.tsbuildinfo
 next-env.d.ts

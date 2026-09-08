@@ -1,18 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const data = require('../../lib/boxing-data');
-const boxingscene = require('../../lib/boxingscene');
+const { resultsData, resultsUpdated } = require('../../lib/results-data');
 
 router.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-router.get('/results/boxingscene', async (req, res) => {
-  try {
-    const results = await boxingscene.getResults();
-    res.set('Cache-Control', 'public, max-age=300');
-    res.json({ results, updated: boxingscene.lastUpdated() });
-  } catch (err) {
-    res.status(502).json({ error: 'BoxingScene sync unavailable', results: [] });
-  }
+router.get('/results/boxingscene', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json({ results: resultsData, updated: resultsUpdated });
 });
 
 router.get('/content', (req, res) => {
