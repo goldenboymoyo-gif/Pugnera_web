@@ -15,7 +15,9 @@ export default function FighterCard({ fighter }) {
   return (
     <Link href={`/fighters/${fighter.slug}`} className="fighter-card">
       <div className="fighter-card__media">
-        {fighter.image ? (
+        {fighter.imageUrl ? (
+          <img src={fighter.imageUrl} alt={fighter.name} loading="lazy" />
+        ) : fighter.image ? (
           <img src={`/boxing/portraits/${fighter.image}.webp`} alt={fighter.name} loading="lazy" />
         ) : (
           <div className="fighter-card__ph">{initials(fighter.name)}</div>

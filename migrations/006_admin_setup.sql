@@ -1,0 +1,22 @@
+-- ============================================================================
+-- Pugnera — 006_admin_setup.sql
+-- Granting the FIRST administrator. You cannot seed this row before the user
+-- exists in auth.users (the profile trigger also depends on auth.users).
+--
+-- Run AFTER the first real registration completes, from the Supabase SQL
+-- editor (or psql). Replace "owner@example.com" with the account owner.
+--
+--   insert into public.admin_roles (user_id, role)
+--   select id, 'super_admin' from auth.users where email = 'owner@example.com'
+--   on conflict (user_id) do nothing;
+--
+-- Additional admins can then be granted from the admin dashboard (admin.grant)
+-- or with the same SQL, using 'admin' as the role.
+--
+-- Verify:
+--   select u.email, a.role, a.created_at
+--   from public.admin_roles a join auth.users u on u.id = a.user_id;
+-- ============================================================================
+
+-- Intentionally empty. See the commented example above.
+select 1;

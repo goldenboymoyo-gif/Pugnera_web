@@ -3,44 +3,47 @@ import { useRouter } from 'next/router';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
 import BackButton from '../../components/BackButton';
-import { fighters, records, championBelts } from '../../lib/boxing-data';
+import { getFighter } from '../../lib/db';
 import { flagSrc } from '../../lib/flags';
 import { videos } from '../../lib/videos';
+import { apiFetch } from '../../lib/client-api';
 
-export async function getStaticPaths() {
+export async function getServerSideProps({ params }) {
+  const { source, fighter } = await getFighter(params.slug);
   return {
-    paths: fighters.map((f) => ({ params: { slug: f.slug } })),
-    fallback: true,
+    notFound: source === 'db' && !fighter,
+    props: { source, fighter, record: null, slug: params.slug },
   };
-}
-
-export async function getStaticProps({ params }) {
-  const fighter = fighters.find((f) => f.slug === params.slug) || null;
-  const related = [...videos.filter((v) => v.category === 'training'), ...videos].slice(0, 3);
-  return { props: { fighter, related, slug: params.slug } };
 }
 
 const profileVideos = ['P-xDqzj6Vp0', 'kg1LYIzxVPk', 'bIkRT1gcfJ4'];
 
-export default function FighterProfile({ fighter, related, slug }) {
+export default function FighterProfile({ source, fighter, slug }) {
   const router = useRouter();
+  const isDb = source === 'db';
   const [registeredBoxer, setRegisteredBoxer] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false);
 
   useEffect(() => {
+    // Backend-driven mode: the database is authoritative. Legacy mode merges
+    // localStorage boxers for the pre-backend setup only.
+    if (isDb) {
+      setLoaded(true);
+      return;
+    }
     try {
       const users = JSON.parse(localStorage.getItem('pugnera_users') || '[]');
-      const boxer = users.find((u) => u.role === 'boxer' && u.slug === slug);
+      const boxer = users.find((u) => u.role === 'boxer' && u.username === slug);
       if (boxer) {
         setRegisteredBoxer({
           ...boxer,
-          name: boxer.nickname
-            ? `${boxer.firstName} "${boxer.nickname}" ${boxer.lastName}`
-            : `${boxer.firstName} ${boxer.lastName}`,
+          name: boxer.fullName,
           record: `${boxer.wins || 0}-${boxer.losses || 0}-${boxer.draws || 0}`,
           kos: boxer.kos || 0,
-          image: boxer.image || 'fighter-1',
-          weight: boxer.weight || 'Heavyweight',
+          image: boxer.image || null,
+          weight: boxer.profile && boxer.profile.weight ? boxer.profile.weight : 'Heavyweight',
           country: boxer.country || 'US',
           stance: boxer.stance || 'Orthodox',
           height: boxer.height || '—',
@@ -49,14 +52,37 @@ export default function FighterProfile({ fighter, related, slug }) {
       }
     } catch (e) {}
     setLoaded(true);
-  }, [slug]);
+  }, [isDb, slug]);
 
-  if (router.isFallback) {
+  useEffect(() => {
+    let cancelled = false;
+    const loadFollow = async () => {
+      try {
+        const res = await apiFetch('/api/follows');
+        if (!cancelled && res.ok && fighter) {
+          setFollowing(
+            res.data.follows.some(
+              (f) => f.follow_type === 'fighter' && f.target_id === fighter.id
+            )
+          );
+        }
+      } catch (e) {}
+    };
+    loadFollow();
+    return () => {
+      cancelled = true;
+    };
+  }, [fighter]);
+
+  if (isDb && !fighter) {
     return (
       <>
         <Header />
         <main>
-          <div className="container search-empty">Loading fighter...</div>
+          <div className="container page-top">
+            <BackButton />
+          </div>
+          <div className="container search-empty">Fighter not found.</div>
         </main>
         <Footer />
       </>
@@ -65,7 +91,7 @@ export default function FighterProfile({ fighter, related, slug }) {
 
   const currentFighter = registeredBoxer || fighter;
 
-  if (!currentFighter && loaded) {
+  if (!currentFighter && isDb && loaded) {
     return (
       <>
         <Header />
@@ -93,9 +119,38 @@ export default function FighterProfile({ fighter, related, slug }) {
   }
 
   const flag = flagSrc(currentFighter.country);
-  const record = records[currentFighter.name] || currentFighter.record;
-  const belt = championBelts[currentFighter.name];
-  const isRegistered = !!registeredBoxer;
+  const isRegistered = !isDb && !!registeredBoxer;
+  const selfReported = isDb && currentFighter.recordSource === 'self';
+
+  const photoStyle = {
+    backgroundColor: '#0c0c0c',
+    backgroundImage: currentFighter.imageUrl
+      ? `url(${currentFighter.imageUrl})`
+      : currentFighter.image
+      ? `url('/boxing/portraits/${currentFighter.image}.webp')`
+      : 'linear-gradient(165deg,#22060d 0%,#000 60%)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  };
+  const showInitials = !currentFighter.imageUrl && !currentFighter.image;
+
+  const toggleFollow = async () => {
+    if (!fighter || followBusy) return;
+    setFollowBusy(true);
+    try {
+      if (following) {
+        const res = await apiFetch(`/api/follows?type=fighter&target=${fighter.id}`, { method: 'DELETE' });
+        if (res.ok) setFollowing(false);
+      } else {
+        const res = await apiFetch('/api/follows', {
+          method: 'POST',
+          body: { followType: 'fighter', targetId: fighter.id },
+        });
+        if (res.ok) setFollowing(true);
+      }
+    } catch (e) {}
+    setFollowBusy(false);
+  };
 
   const trainVideos = profileVideos.map((id) => {
     const v = videos.find((x) => x.id === id);
@@ -111,18 +166,8 @@ export default function FighterProfile({ fighter, related, slug }) {
         </div>
         <div className="container profile">
         <aside className="profile__card">
-          <div
-            className="profile__photo"
-            style={{
-              backgroundImage: currentFighter.image
-                ? `url('/boxing/portraits/${currentFighter.image}.webp')`
-                : undefined,
-              background: currentFighter.image
-                ? undefined
-                : 'linear-gradient(165deg,#22060d 0%,#000 60%)',
-            }}
-          >
-            {!currentFighter.image && (
+          <div className="profile__photo" style={photoStyle}>
+            {showInitials && (
               <div
                 style={{
                   position: 'absolute',
@@ -158,42 +203,40 @@ export default function FighterProfile({ fighter, related, slug }) {
             </div>
             <div className="stat">
               <dt>Pro Record</dt>
-              <dd>{record || '—'}</dd>
+              <dd>{currentFighter.record || '—'}</dd>
             </div>
-            {isRegistered && currentFighter.stance ? (
+            {isDb && currentFighter.gym ? (
               <div className="stat">
-                <dt>Stance</dt>
-                <dd>{currentFighter.stance}</dd>
+                <dt>Gym</dt>
+                <dd>{currentFighter.gym}</dd>
               </div>
             ) : null}
-            {isRegistered && currentFighter.height ? (
+            {isDb && currentFighter.proDebut ? (
               <div className="stat">
-                <dt>Height</dt>
-                <dd>{currentFighter.height}</dd>
+                <dt>Pro Debut</dt>
+                <dd>{currentFighter.proDebut}</dd>
               </div>
             ) : null}
-            {isRegistered && currentFighter.reach ? (
-              <div className="stat">
-                <dt>Reach</dt>
-                <dd>{currentFighter.reach}</dd>
-              </div>
+            {isDb && currentFighter.verified ? (
+              <div className="belt">Pugnera Verified</div>
             ) : null}
-            {isRegistered && currentFighter.kos !== undefined ? (
-              <div className="stat">
-                <dt>KOs</dt>
-                <dd>{currentFighter.kos}</dd>
-              </div>
+            {isDb && currentFighter.status === 'approved' ? (
+              <div className="belt">Pugnera Registered Fighter</div>
             ) : null}
             {isRegistered ? <div className="belt">Pugnera Registered Fighter</div> : null}
-            {belt && !isRegistered ? <div className="belt">{belt}</div> : null}
           </dl>
+          {isDb && fighter ? (
+            <button type="button" className="btn btn--outline profile__follow" onClick={toggleFollow} disabled={followBusy}>
+              {following ? 'Following' : followBusy ? '…' : 'Follow'}
+            </button>
+          ) : null}
         </aside>
 
         <div className="profile__main">
           <h1>{currentFighter.name}</h1>
           <p className="record">
-            {record || currentFighter.weight}
-            {record ? <small> · {currentFighter.weight}</small> : null}
+            {currentFighter.record || currentFighter.weight}
+            {selfReported ? <small> · Self-reported, pending official confirmation</small> : null}
           </p>
 
           <div className="profile__section">
@@ -205,17 +248,28 @@ export default function FighterProfile({ fighter, related, slug }) {
               </div>
               <div className="fact">
                 <div className="fact__label">Record</div>
-                <div className="fact__value">{record || 'Available via BoxRec'}</div>
+                <div className="fact__value">
+                  {currentFighter.record || 'Available via BoxRec'}
+                </div>
               </div>
               <div className="fact">
-                <div className="fact__label">Championship status</div>
-                <div className="fact__value">{belt || 'Top contender'}</div>
+                <div className="fact__label">Record status</div>
+                <div className="fact__value">
+                  {isDb && selfReported
+                    ? 'Self-reported — confirmed by Pugnera review'
+                    : isDb
+                    ? 'Confirmed by Pugnera'
+                    : 'Editorial'}
+                </div>
               </div>
               <div className="fact">
                 <div className="fact__label">Nationality</div>
                 <div className="fact__value">{currentFighter.country}</div>
               </div>
             </div>
+            {isDb && currentFighter.bio ? (
+              <p className="profile__bio">{currentFighter.bio}</p>
+            ) : null}
           </div>
 
           <div className="profile__section">

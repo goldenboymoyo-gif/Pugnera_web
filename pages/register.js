@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import Head from 'next/head';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BackButton from '../components/BackButton';
+import { apiFetch } from '../lib/client-api';
+import { supabaseBrowser } from '../lib/supabase/client';
 
 const WEIGHT_CLASSES = [
   'Mini Flyweight',
@@ -43,6 +46,7 @@ const COUNTRIES = [
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_RE = /^[a-z0-9_]{3,30}$/;
 
 const BoxerIcon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -69,7 +73,10 @@ export default function RegisterPage() {
     terms: false,
   });
   const [errors, setErrors] = useState({});
+  const [phase, setPhase] = useState('form'); // form | verify | success
   const [created, setCreated] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [submits, setSubmits] = useState(0);
 
   const handleChange = (e) => {
     const name = e.target.name;
@@ -78,35 +85,33 @@ export default function RegisterPage() {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
+  const checkUsernameRemote = async (username) => {
+    const res = await apiFetch(`/api/auth/username?username=${encodeURIComponent(username)}`);
+    if (res.ok && res.data && res.data.available === false) {
+      setErrors((prev) => ({ ...prev, username: 'That username is already taken.' }));
+    }
+  };
+
   const validate = () => {
     const next = {};
-    const users = JSON.parse(localStorage.getItem('pugnera_users') || '[]');
-
     if (!role) next.role = 'Choose an account type to continue.';
     if (!values.fullName.trim()) next.fullName = 'Enter your full name.';
     if (!values.email.trim()) next.email = 'Enter your email address.';
     else if (!EMAIL_RE.test(values.email)) next.email = 'Enter a valid email address.';
     if (!values.username.trim()) next.username = 'Choose a username.';
-    else if (values.username.trim().length < 3) next.username = 'Username must be at least 3 characters.';
-    else if (users.find((u) => u.username === values.username.trim())) next.username = 'That username is already taken.';
+    else if (!USERNAME_RE.test(values.username.trim())) next.username = 'Usernames use 3-30 lowercase letters, numbers and underscores.';
     if (!values.password) next.password = 'Create a password.';
-    else if (values.password.length < 6) next.password = 'Password must be at least 6 characters.';
+    else if (values.password.length < 8) next.password = 'Password must be at least 8 characters.';
     if (!values.confirm) next.confirm = 'Enter your password again.';
     else if (values.confirm !== values.password) next.confirm = 'Passwords do not match.';
     if (role === 'boxer' && !values.country) next.country = 'Select your country.';
     if (!values.terms) next.terms = 'You need to agree to the Terms of Service to continue.';
-
     return next;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const next = validate();
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
-
+  // Legacy localStorage mode, used only when the backend is not configured.
+  const legacySave = () => {
     const users = JSON.parse(localStorage.getItem('pugnera_users') || '[]');
-
     const user = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
       role,
@@ -116,21 +121,92 @@ export default function RegisterPage() {
       country: role === 'boxer' ? values.country : '',
       createdAt: new Date().toISOString(),
     };
-
     users.push(user);
     localStorage.setItem('pugnera_users', JSON.stringify(users));
     document.cookie =
       'pugnera_user=' + encodeURIComponent(user.username) + '; path=/; max-age=31536000; SameSite=Lax';
-
-    setCreated(user);
+    setCreated({ ...user, backend: false });
+    setPhase('success');
   };
 
-  if (created) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const next = validate();
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setBusy(true);
+    setSubmits((s) => s + 1);
+
+    const payload = {
+      email: values.email.trim(),
+      password: values.password,
+      username: values.username.trim(),
+      fullName: values.fullName.trim(),
+      accountType: role,
+    };
+
+    const res = await apiFetch('/api/auth/register', { method: 'POST', body: payload });
+
+    if (!res.ok && res.status === 503) {
+      // Backend not configured — keep the site usable in development.
+      legacySave();
+      setBusy(false);
+      return;
+    }
+
+    if (!res.ok) {
+      setErrors({ form: res.error || 'Could not create your account. Please try again.' });
+      setBusy(false);
+      return;
+    }
+
+    if (res.data.requiresEmailConfirmation) {
+      setCreated({ email: payload.email, username: payload.username, role, backend: true });
+      setPhase('verify');
+      setBusy(false);
+      return;
+    }
+
+    // Auto-confirm mode (development): sign straight in and move to the
+    // next-step so the account profile can be completed.
+    const supabase = supabaseBrowser();
+    try {
+      if (supabase) {
+        await supabase.auth.signInWithPassword({ email: payload.email, password: payload.password });
+      }
+    } catch (signInErr) {
+      // Non-fatal; the next-step API calls will ask the user to sign in.
+    }
+    setCreated({ email: payload.email, username: payload.username, role, backend: true, country: role === 'boxer' ? values.country : '' });
+    setPhase('success');
+    setBusy(false);
+  };
+
+  const resendVerification = async () => {
+    setBusy(true);
+    const supabase = supabaseBrowser();
+    if (supabase && created && created.email) {
+      await supabase.auth.resend({ type: 'signup', email: created.email });
+    }
+    setBusy(false);
+  };
+
+  if (phase === 'verify') {
+    return (
+      <VerifyStep created={created} onResend={resendVerification} busy={busy} />
+    );
+  }
+
+  if (phase === 'success') {
     return <RegisterSuccess user={created} />;
   }
 
   return (
     <>
+      <Head>
+        <title>Create your account · Pugnera</title>
+      </Head>
       <Header />
       <main>
         <div className="container page-top">
@@ -143,6 +219,9 @@ export default function RegisterPage() {
           </header>
 
           <form className="register-form" onSubmit={handleSubmit} noValidate>
+            {errors.form && (
+              <p className="rf-error rf-error--summary" role="alert">{errors.form}</p>
+            )}
             <fieldset className="role-fieldset">
               <legend>What are you signing up as?</legend>
               {errors.role && (
@@ -247,7 +326,11 @@ export default function RegisterPage() {
                   placeholder="Choose a username"
                   autoComplete="username"
                   value={values.username}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    const v = e.target.value.trim().toLowerCase();
+                    if (USERNAME_RE.test(v)) checkUsernameRemote(v);
+                  }}
                   aria-invalid={!!errors.username}
                   aria-describedby={errors.username ? 'username-error' : undefined}
                 />
@@ -336,15 +419,54 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              <button type="submit" className="btn btn--primary register-submit">
-                Create account
+              <button type="submit" className="btn btn--primary register-submit" disabled={busy}>
+                {busy ? 'Creating account…' : 'Create account'}
               </button>
             </section>
 
             <p className="register-signin">
-              Already have an account? <a href="/">Sign in</a>
+              Already have an account? <a href="/login">Sign in</a>
             </p>
           </form>
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function VerifyStep({ created, onResend, busy }) {
+  return (
+    <>
+      <Header />
+      <main>
+        <div className="container page-top">
+          <BackButton />
+        </div>
+        <div className="container register-success">
+          <div className="register-success__icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 12v4h16v-4M2 8h20v5a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z" />
+              <path d="M12 3v6m0 0 2-2m-2 2-2-2" />
+            </svg>
+          </div>
+          <h1>Check your email</h1>
+          <p>
+            We sent a confirmation link to <strong>{created.email}</strong>. Open it to verify your
+            email address, then sign in.
+          </p>
+          <div className="next-step__actions">
+            <a href="/login" className="btn btn--primary">Go to sign in</a>
+            <button type="button" className="btn btn--outline" onClick={onResend} disabled={busy}>
+              {busy ? 'Sending…' : 'Resend email'}
+            </button>
+          </div>
+          <p className="register-signin">
+            Didn&apos;t get the email? Check your spam folder, or{' '}
+            <button type="button" className="link-btn" onClick={onResend} disabled={busy}>
+              resend it
+            </button>.
+          </p>
         </div>
       </main>
       <Footer />
@@ -359,7 +481,6 @@ function RegisterSuccess({ user }) {
     weight: '',
     gym: '',
     debut: '',
-    record: '',
     bio: '',
     social: '',
   });
@@ -370,6 +491,8 @@ function RegisterSuccess({ user }) {
     countries: [],
   });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
 
   const handleBoxer = (e) => {
     setBoxer((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -388,8 +511,43 @@ function RegisterSuccess({ user }) {
     });
   };
 
-  const saveBoxerProfile = (e) => {
+  const saveBoxerProfile = async (e) => {
     e.preventDefault();
+    setErr('');
+
+    if (!boxer.boxingName.trim()) {
+      setErr('Add your boxing name so the Pugnera team can review your profile.');
+      return;
+    }
+
+    if (user.backend) {
+      const socialLinks = boxer.social
+        .split(/[\s,]+/)
+        .filter(Boolean)
+        .filter((u) => /^https?:\/\//.test(u));
+      setSaving(true);
+      const res = await apiFetch('/api/profiles/boxer', {
+        method: 'PUT',
+        body: {
+          boxingName: boxer.boxingName,
+          country: boxer.country || undefined,
+          weightClass: boxer.weight || undefined,
+          gym: boxer.gym || undefined,
+          proDebut: boxer.debut ? parseInt(boxer.debut, 10) || null : null,
+          bio: boxer.bio || undefined,
+          socialLinks,
+        },
+      });
+      setSaving(false);
+      if (!res.ok) {
+        setErr(res.error || 'Could not save your profile.');
+        return;
+      }
+      setSaved(true);
+      return;
+    }
+
+    // Legacy localStorage flow (backend not configured).
     const users = JSON.parse(localStorage.getItem('pugnera_users') || '[]');
     const updated = users.map((u) =>
       u.id === user.id
@@ -401,7 +559,6 @@ function RegisterSuccess({ user }) {
               weight: boxer.weight,
               gym: boxer.gym,
               debut: boxer.debut,
-              record: boxer.record,
               bio: boxer.bio,
               social: boxer.social,
             },
@@ -412,8 +569,29 @@ function RegisterSuccess({ user }) {
     setSaved(true);
   };
 
-  const saveInterests = (e) => {
+  const saveInterests = async (e) => {
     e.preventDefault();
+    setErr('');
+    if (user.backend) {
+      setSaving(true);
+      const res = await apiFetch('/api/profiles/fan', {
+        method: 'PUT',
+        body: {
+          followFighters: interests.fighters,
+          followEvents: interests.events,
+          preferredWeightClasses: interests.weights,
+          preferredCountries: interests.countries,
+        },
+      });
+      setSaving(false);
+      if (!res.ok) {
+        setErr(res.error || 'Could not save your preferences.');
+        return;
+      }
+      setSaved(true);
+      return;
+    }
+
     const users = JSON.parse(localStorage.getItem('pugnera_users') || '[]');
     const updated = users.map((u) => (u.id === user.id ? { ...u, interests } : u));
     localStorage.setItem('pugnera_users', JSON.stringify(updated));
@@ -422,6 +600,9 @@ function RegisterSuccess({ user }) {
 
   return (
     <>
+      <Head>
+        <title>Your account is ready · Pugnera</title>
+      </Head>
       <Header />
       <main>
         <div className="container register-success">
@@ -434,7 +615,7 @@ function RegisterSuccess({ user }) {
           <h1>Your account is ready</h1>
           <p>
             {user.role === 'boxer'
-              ? 'You registered as a boxer, so your profile has a home on the Fighters page. Take a minute to complete your professional profile — you can always do this later.'
+              ? 'You registered as a boxer. Complete your professional profile below — a member of the Pugnera team will review and approve it before it appears on the Fighters page.'
               : 'You registered as a fan. Personalise your experience so Pugnera follows what matters to you.'}
           </p>
 
@@ -443,6 +624,7 @@ function RegisterSuccess({ user }) {
               {user.role === 'boxer' && (
                 <>
                   <h2>Complete your professional profile</h2>
+                  {err && <p className="rf-error rf-error--summary" role="alert">{err}</p>}
                   <form onSubmit={saveBoxerProfile} className="register-form">
                     <div className="form-row">
                       <div className="form-field">
@@ -505,27 +687,16 @@ function RegisterSuccess({ user }) {
                         />
                       </div>
                       <div className="form-field">
-                        <label htmlFor="record">Professional record</label>
+                        <label htmlFor="bio">Biography</label>
                         <input
-                          id="record"
-                          name="record"
+                          id="bio"
+                          name="bio"
                           type="text"
-                          placeholder="e.g. 12-0-0 (8 KOs)"
-                          value={boxer.record}
+                          placeholder="A short introduction about you and your career"
+                          value={boxer.bio}
                           onChange={handleBoxer}
                         />
                       </div>
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor="bio">Biography</label>
-                      <textarea
-                        id="bio"
-                        name="bio"
-                        rows="4"
-                        placeholder="A short introduction about you and your career"
-                        value={boxer.bio}
-                        onChange={handleBoxer}
-                      />
                     </div>
                     <div className="form-field">
                       <label htmlFor="social">Social media links</label>
@@ -533,14 +704,18 @@ function RegisterSuccess({ user }) {
                         id="social"
                         name="social"
                         type="text"
-                        placeholder="Instagram, X or other profiles"
+                        placeholder="Full URLs, separated by spaces or commas"
                         value={boxer.social}
                         onChange={handleBoxer}
                       />
                     </div>
+                    <p className="next-step__note">
+                      Your professional record is confirmed by the Pugnera team from sanctioned
+                      sources. Self-reported records are never shown as official.
+                    </p>
                     <div className="next-step__actions">
-                      <button type="submit" className="btn btn--primary">
-                        Save profile
+                      <button type="submit" className="btn btn--primary" disabled={saving}>
+                        {saving ? 'Saving…' : 'Save profile'}
                       </button>
                       <a href="/fighters" className="btn btn--outline">
                         Skip for now
@@ -553,6 +728,7 @@ function RegisterSuccess({ user }) {
               {user.role === 'fan' && (
                 <>
                   <h2>Personalise your experience</h2>
+                  {err && <p className="rf-error rf-error--summary" role="alert">{err}</p>}
                   <p className="next-step__intro">
                     Choose what you want to follow. You can change this at any time.
                   </p>
@@ -607,8 +783,8 @@ function RegisterSuccess({ user }) {
                       </div>
                     </div>
                     <div className="next-step__actions">
-                      <button type="submit" className="btn btn--primary">
-                        Save preferences
+                      <button type="submit" className="btn btn--primary" disabled={saving}>
+                        {saving ? 'Saving…' : 'Save preferences'}
                       </button>
                       <a href="/" className="btn btn--outline">
                         Skip for now
@@ -625,12 +801,12 @@ function RegisterSuccess({ user }) {
               <h2>Saved</h2>
               <p>
                 {user.role === 'boxer'
-                  ? 'Your professional profile is ready. It will now appear on the Fighters page.'
+                  ? 'Your professional profile is submitted for review. Once approved it will appear on the Fighters page.'
                   : 'Your preferences are saved. We will use them to keep boxing front and centre for you.'}
               </p>
               <div className="next-step__actions">
                 {user.role === 'boxer' && (
-                  <a href="/fighters" className="btn btn--primary">View Fighters</a>
+                  <a href="/account" className="btn btn--primary">My account</a>
                 )}
                 {user.role === 'fan' && (
                   <a href="/upcoming" className="btn btn--primary">Upcoming Fights</a>

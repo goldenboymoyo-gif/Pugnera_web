@@ -1,47 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BackButton from '../components/BackButton';
 import FighterCard from '../components/FighterCard';
-import { fighters } from '../lib/boxing-data';
+import { getFighters } from '../lib/db';
 
-export async function getStaticProps() {
-  return { props: { fighters } };
+export async function getServerSideProps() {
+  const { source, fighters, error } = await getFighters();
+  return { props: { source, fighters, dbError: !!error } };
 }
 
-export default function FightersPage({ fighters }) {
+export default function FightersPage({ source, fighters, dbError }) {
   const [query, setQuery] = useState('');
-  const [allFighters, setAllFighters] = useState(fighters);
+  const [country, setCountry] = useState('');
+  const [weight, setWeight] = useState('');
 
-  useEffect(() => {
-    try {
-      const users = JSON.parse(localStorage.getItem('pugnera_users') || '[]');
-      const registeredBoxers = users
-        .filter((u) => u.role === 'boxer')
-        .map((u) => ({
-          name: u.nickname ? `${u.firstName} "${u.nickname}" ${u.lastName}` : `${u.firstName} ${u.lastName}`,
-          image: u.image || 'fighter-1',
-          weight: u.weight || 'Heavyweight',
-          country: u.country || 'US',
-          slug: u.slug,
-          record: `${u.wins || 0}-${u.losses || 0}-${u.draws || 0} (${u.kos || 0} KO)`,
-          stance: u.stance || 'Orthodox',
-          height: u.height || '',
-          reach: u.reach || '',
-          isRegistered: true,
-        }));
-      if (registeredBoxers.length > 0) {
-        setAllFighters([...registeredBoxers, ...fighters]);
-      }
-    } catch (e) {}
-  }, [fighters]);
-
-  const filtered = allFighters.filter(
-    (f) =>
-      f.name.toLowerCase().includes(query.toLowerCase()) ||
-      f.weight.toLowerCase().includes(query.toLowerCase()) ||
-      f.country.toLowerCase().includes(query.toLowerCase())
+  const countries = useMemo(
+    () => [...new Set(fighters.map((f) => f.country).filter(Boolean))].sort(),
+    [fighters]
   );
+  const weights = useMemo(
+    () => [...new Set(fighters.map((f) => f.weight).filter(Boolean))].sort(),
+    [fighters]
+  );
+
+  const filtered = fighters.filter((f) => {
+    const q = query.trim().toLowerCase();
+    const matchQ =
+      !q ||
+      f.name.toLowerCase().includes(q) ||
+      (f.weight || '').toLowerCase().includes(q) ||
+      (f.country || '').toLowerCase().includes(q);
+    const matchC = !country || f.country === country;
+    const matchW = !weight || f.weight === weight;
+    return matchQ && matchC && matchW;
+  });
+
+  const isDb = source === 'db';
 
   return (
     <>
@@ -52,7 +47,11 @@ export default function FightersPage({ fighters }) {
         </div>
         <div className="page-hero">
           <h1>Fighters</h1>
-          <p>Tap any fighter to open their profile, record and latest videos.</p>
+          <p>
+            {isDb
+              ? 'Approved Pugnera-registered fighters. Tap one to open their profile.'
+              : 'Tap any fighter to open their profile, record and latest videos.'}
+          </p>
         </div>
         <div className="container">
           <div className="searchbar">
@@ -66,7 +65,31 @@ export default function FightersPage({ fighters }) {
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          {filtered.length ? (
+
+          {(countries.length > 0 || weights.length > 0) && (
+            <div className="filters">
+              <select aria-label="Filter by nationality" value={country} onChange={(e) => setCountry(e.target.value)}>
+                <option value="">All nationalities</option>
+                {countries.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <select aria-label="Filter by weight class" value={weight} onChange={(e) => setWeight(e.target.value)}>
+                <option value="">All weight classes</option>
+                {weights.map((w) => (
+                  <option key={w} value={w}>{w}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {isDb && fighters.length === 0 ? (
+            <div className="search-empty">
+              {dbError
+                ? 'Fighters are temporarily unavailable. Please try again shortly.'
+                : 'No approved fighters yet. New profiles appear here once the Pugnera team approves them.'}
+            </div>
+          ) : filtered.length ? (
             <div className="grid grid--portrait">
               {filtered.map((f) => (
                 <FighterCard key={f.slug} fighter={f} />

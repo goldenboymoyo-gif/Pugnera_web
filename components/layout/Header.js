@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
+import { supabaseBrowser } from '../../lib/supabase/client';
 
 const NAV = [
   { label: 'Home', href: '/' },
@@ -18,11 +19,26 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (searchOpen && inputRef.current) inputRef.current.focus();
   }, [searchOpen]);
+
+  useEffect(() => {
+    const supabase = supabaseBrowser();
+    let sub = null;
+    if (supabase) {
+      sub = supabase.auth.onAuthStateChange((event, session) => {
+        setSignedIn(!!session);
+      });
+      supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    }
+    return () => {
+      if (sub && sub.data && sub.data.subscription) sub.data.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -87,7 +103,9 @@ export default function Header() {
         </div>
 
         <div className="header__right">
-          <a href="/register" className="btn-upgrade">Sign Up</a>
+          <a href={signedIn ? '/account' : '/register'} className="btn-upgrade">
+            {signedIn ? 'Account' : 'Sign Up'}
+          </a>
         </div>
 
         <div className="header__mobile-right">
@@ -132,7 +150,9 @@ export default function Header() {
               </a>
             );
           })}
-          <a href="/register" className="mobile-nav__link mobile-nav__link--cta">Sign Up</a>
+          <a href={signedIn ? '/account' : '/register'} className="mobile-nav__link mobile-nav__link--cta">
+            {signedIn ? 'Account' : 'Sign Up'}
+          </a>
         </nav>
       </div>
     </header>

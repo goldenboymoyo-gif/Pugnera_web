@@ -2,21 +2,23 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BackButton from '../components/BackButton';
 import MediaCard from '../components/MediaCard';
-import { getContent, fights } from '../lib/boxing-data';
+import { getUpcoming } from '../lib/db';
 import { useLiveResults, findLiveResult } from '../components/LiveResults';
 
-export async function getStaticProps() {
-  const content = getContent();
-  const upcoming = fights.filter((f) => f.type === 'upcoming');
-  return { props: { content, upcoming } };
+export async function getServerSideProps() {
+  const { source, fights, error } = await getUpcoming();
+  return { props: { source, fights, dbError: !!error } };
 }
 
-export default function UpcomingPage({ content, upcoming }) {
+export default function UpcomingPage({ source, fights, dbError }) {
   const liveResults = useLiveResults();
-  const ordered = [...upcoming].sort((a, b) => {
+  const isDb = source === 'db';
+
+  const ordered = [...fights].sort((a, b) => {
     const d = (s) => (s === 'TBC' ? 999 : parseInt(s.split(' ')[1], 10));
     return d(a.date) - d(b.date);
   });
+
   return (
     <>
       <Header />
@@ -29,15 +31,23 @@ export default function UpcomingPage({ content, upcoming }) {
           <p>Every big boxing night coming up — open a card for the fight info, tickets and build-up videos.</p>
         </div>
         <div className="container">
-          <div className="grid grid--fights">
-            {ordered.map((f) => (
-              <MediaCard
-                key={f.slug}
-                media={f}
-                badgeLabel={findLiveResult(liveResults, f.title) ? 'Result' : undefined}
-              />
-            ))}
-          </div>
+          {isDb && fights.length === 0 ? (
+            <div className="search-empty">
+              {dbError
+                ? 'The fight calendar is temporarily unavailable. Please try again shortly.'
+                : 'No upcoming fights announced yet. New nights appear here as soon as they are announced.'}
+            </div>
+          ) : (
+            <div className="grid grid--fights">
+              {ordered.map((f) => (
+                <MediaCard
+                  key={f.slug}
+                  media={f}
+                  badgeLabel={findLiveResult(liveResults, f.title) ? 'Result' : undefined}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </main>
       <Footer />
