@@ -112,9 +112,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://pugnera.com/contact" target="_blank" rel="noopener noreferrer">
-                  Contact Us
-                </a>
+                <a href="/contact">Contact Us</a>
               </li>
               <li>
                 <a href="/rankings">Rankings</a>

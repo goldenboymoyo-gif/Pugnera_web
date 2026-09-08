@@ -139,22 +139,26 @@ export default function AboutPage() {
             <h2>Built by Bright Moyo &amp; Mildred Ngoma</h2>
             <div className="about-founders">
               <div className="about-founder">
-                <div className="about-founder__monogram" aria-hidden="true">BM</div>
+                <div className="about-founder__photo">
+                  <img src="/boxing/team/bright-founder.jpg" alt="Portrait of Bright Moyo, Founder of Pugnera" />
+                </div>
                 <h3>Bright Moyo</h3>
-                <span className="about-founder__role">Co-Founder</span>
+                <span className="about-founder__role">Founder</span>
                 <p>
-                  Bright is a full-stack developer and one of the people behind the technology powering
-                  Pugnera. He is focused on building the platform and turning the idea into something people
+                  Bright is the founder of Pugnera and a full-stack developer behind the technology powering
+                  the platform. He is focused on building Pugnera and turning the idea into something people
                   can actually use.
                 </p>
               </div>
               <div className="about-founder">
-                <div className="about-founder__monogram" aria-hidden="true">MN</div>
+                <div className="about-founder__photo">
+                  <img src="/boxing/team/mildred-ngoma.jpg" alt="Portrait of Mildred Ngoma, CEO of Pugnera" />
+                </div>
                 <h3>Mildred Ngoma</h3>
-                <span className="about-founder__role">Co-Founder</span>
+                <span className="about-founder__role">CEO</span>
                 <p>
-                  Mildred is a co-founder of Pugnera, working alongside Bright on the direction and growth of
-                  the platform.
+                  Mildred is the CEO of Pugnera, responsible for the direction and growth of the platform and
+                  building the connections that help boxing grow across Africa.
                 </p>
               </div>
             </div>

@@ -26,6 +26,10 @@ server-out.log
 .env.test.local
 .env.production.local
 
+# source photos (duplicates live in public/boxing/team/)
+/Bright Founder.jpeg
+/mildred N.jpeg
+
 # vercel
 .vercel
 
